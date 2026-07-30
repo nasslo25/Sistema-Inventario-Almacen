@@ -198,6 +198,38 @@
   .scan-session-item:last-child { border-bottom: none; }
   .divider-or { text-align: center; font-size: 11px; color: var(--ink-soft); margin: 16px 0; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
 
+  /* Clases específicas para la firma de Nasslo Muñoz */
+  .fixed { position: fixed; }
+  .bottom-4 { bottom: 1rem; }
+  .right-4 { right: 1rem; }
+  .opacity-50 { opacity: 0.5; }
+  .hover\:opacity-100:hover { opacity: 1; }
+  .transition-opacity { transition-property: opacity; }
+  .duration-500 { transition-duration: 500ms; }
+  .z-50 { z-index: 50; }
+  .pointer-events-none { pointer-events: none; }
+  .select-none { user-select: none; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-end { align-items: flex-end; }
+  .text-\[0\.65rem\] { font-size: 0.65rem; }
+  .text-\[0\.6rem\] { font-size: 0.6rem; }
+  .text-gray-400 { color: #9ca3af; }
+  .text-gray-200 { color: #e5e7eb; }
+  .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+  .uppercase { text-transform: uppercase; }
+  .tracking-widest { letter-spacing: 0.1em; }
+  .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  .mb-\[-4px\] { margin-bottom: -4px; }
+  .mt-1 { margin-top: 0.25rem; }
+  @media (min-width: 768px) {
+    .md\:bottom-6 { bottom: 1.5rem; }
+    .md\:right-8 { right: 2rem; }
+  }
+  @media print {
+    .print\:hidden { display: none !important; }
+  }
+
   @media (max-width: 760px) {
     .app { padding: 16px 12px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
@@ -275,6 +307,14 @@
 
   <div class="list" id="list"></div>
 
+</div>
+
+<div class="fixed bottom-4 right-4 md:bottom-6 md:right-8 opacity-50 hover:opacity-100 transition-opacity duration-500 z-50 print:hidden pointer-events-none select-none">
+    <div class="flex flex-col items-end">
+        <span class="text-[0.65rem] text-gray-400 uppercase tracking-widest font-sans mb-[-4px]">Creada por</span>
+        <span class="text-2xl text-gray-200" style="font-family: 'Brush Script MT', 'Lucida Handwriting', 'Great Vibes', cursive;">Nasslo Muñoz</span>
+        <span class="text-[0.6rem] text-gray-400 font-sans tracking-widest uppercase mt-1">Ingeniero Informático</span>
+    </div>
 </div>
 
 <div class="overlay" id="overlayProduct">

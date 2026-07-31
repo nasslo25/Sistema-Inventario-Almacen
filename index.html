@@ -187,7 +187,6 @@
   .report-empty { padding: 40px 20px; text-align: center; color: var(--ink-soft); font-size: 14px; background: var(--bg); border-radius: var(--radius-sm); }
 
   #reader { width: 100%; border-radius: var(--radius-sm); overflow: hidden; background: #000; min-height: 280px; border: 2px solid var(--line); }
-  #reader video { filter: brightness(1.25) contrast(1.05); } /* Aumenta el brillo y contraste de la cámara */
   .scan-hint { font-size: 13px; color: var(--ink-soft); margin: 12px 0; text-align: center; }
   .scan-msg { font-size: 14px; font-weight: 500; padding: 12px 16px; border-radius: var(--radius-sm); margin-top: 12px; display: none; text-align: center; }
   .scan-msg.show { display: block; animation: fadeIn 0.2s; }
@@ -929,6 +928,25 @@ let scanMode = null;
 let lastScan = {};
 let soldThisSession = [];
 
+let audioCtx = null;
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.type = 'sine'; // Tono clásico
+    oscillator.frequency.value = 880; // Frecuencia agradable
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volumen suave
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1); // Duración muy corta
+  } catch(e) {
+    console.log('El audio no pudo reproducirse:', e);
+  }
+}
+
 function showScanMsg(text, kind){
   const el = document.getElementById('scanMsg');
   el.textContent = text;
@@ -1013,6 +1031,8 @@ async function onScanSuccess(decodedText){
   const now = Date.now();
   if(lastScan[decodedText] && now - lastScan[decodedText] < 1500) return;
   lastScan[decodedText] = now;
+
+  playBeep(); 
 
   const qtyToProcess = parseInt(document.getElementById('scanQty').value) || 1;
 

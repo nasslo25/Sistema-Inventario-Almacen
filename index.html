@@ -187,6 +187,7 @@
   .report-empty { padding: 40px 20px; text-align: center; color: var(--ink-soft); font-size: 14px; background: var(--bg); border-radius: var(--radius-sm); }
 
   #reader { width: 100%; border-radius: var(--radius-sm); overflow: hidden; background: #000; min-height: 280px; border: 2px solid var(--line); }
+  #reader video { filter: brightness(1.25) contrast(1.05); } /* Aumenta el brillo y contraste de la cámara */
   .scan-hint { font-size: 13px; color: var(--ink-soft); margin: 12px 0; text-align: center; }
   .scan-msg { font-size: 14px; font-weight: 500; padding: 12px 16px; border-radius: var(--radius-sm); margin-top: 12px; display: none; text-align: center; }
   .scan-msg.show { display: block; animation: fadeIn 0.2s; }
@@ -458,6 +459,12 @@
     <h2 id="scannerTitle">Escanear Código</h2>
     <div id="reader"></div>
     <p class="scan-hint" id="scanHint">Apunta la cámara al código de barras del producto.</p>
+    
+    <div id="scanQtyWrap" style="display:none; text-align:center; margin: 16px 0;">
+      <label style="font-size: 13px; font-weight: 600; color: var(--ink-soft); display:block; margin-bottom:8px;">Cantidad por lectura:</label>
+      <input type="number" id="scanQty" min="1" value="1" style="width: 120px; text-align: center; font-size: 18px; font-weight: bold; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px; color: var(--ink); outline: none;">
+    </div>
+
     <div class="divider-or">o ingresa el código manualmente</div>
     <div class="scan-inline">
       <input type="text" id="manualCode" placeholder="Ingresar código...">
@@ -972,6 +979,14 @@ function openScanner(mode){
   else if(mode === 'new') document.getElementById('scannerTitle').textContent = 'Escanear para Ingresar';
   else if(mode === 'consult') document.getElementById('scannerTitle').textContent = 'Consultar Producto';
   
+  const qtyWrap = document.getElementById('scanQtyWrap');
+  if(mode === 'sell' || mode === 'new') {
+    qtyWrap.style.display = 'block';
+    document.getElementById('scanQty').value = 1;
+  } else {
+    qtyWrap.style.display = 'none';
+  }
+
   document.getElementById('scanSession').innerHTML = '';
   document.getElementById('manualCode').value = '';
   overlayScanner.classList.add('show');
@@ -999,10 +1014,15 @@ async function onScanSuccess(decodedText){
   if(lastScan[decodedText] && now - lastScan[decodedText] < 1500) return;
   lastScan[decodedText] = now;
 
+  const qtyToProcess = parseInt(document.getElementById('scanQty').value) || 1;
+
   if(scanMode === 'new'){
     await stopCamera();
     overlayScanner.classList.remove('show');
     openProductModal(null, decodedText);
+    if(qtyToProcess > 1) {
+        setTimeout(() => { document.getElementById('fQty').value = qtyToProcess; }, 100);
+    }
     return;
   }
   
@@ -1023,19 +1043,19 @@ async function onScanSuccess(decodedText){
     showScanMsg(`Código no encontrado: ${decodedText}`, 'err');
     return;
   }
-  if(product.quantity <= 0){
-    showScanMsg(`Stock agotado: ${product.name}`, 'err');
+  if(product.quantity < qtyToProcess){
+    showScanMsg(`Stock insuficiente: ${product.name} (Quedan ${product.quantity})`, 'err');
     return;
   }
-  product.quantity -= 1;
+  product.quantity -= qtyToProcess;
   await saveProducts();
-  await logMovement(product.id, product.name, 'venta', 1, 'Venta rápida (Escáner)');
-  showScanMsg(`¡Vendido! ${product.name} (-1)`, 'ok');
-  soldThisSession.unshift({name: product.name, remaining: product.quantity});
+  await logMovement(product.id, product.name, 'venta', qtyToProcess, 'Venta rápida (Escáner)');
+  showScanMsg(`¡Vendido! ${product.name} (-${qtyToProcess})`, 'ok');
+  soldThisSession.unshift({name: product.name, remaining: product.quantity, deducted: qtyToProcess});
   
   document.getElementById('scanSession').innerHTML = soldThisSession.map(s=>
     `<div class="scan-session-item">
-      <span>${s.name}</span>
+      <span>${s.name} <span style="color:var(--danger); font-weight:bold; margin-left:4px;">(-${s.deducted})</span></span>
       <span class="mono" style="color:var(--ink-soft)">quedan ${s.remaining}</span>
     </div>`
   ).join('');

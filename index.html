@@ -958,26 +958,47 @@ async function startCamera(){
   try {
     scanHint.textContent = "Solicitando permisos de cámara...";
     html5QrCode = new Html5Qrcode("reader");
-    const config = { fps: 10, qrbox: { width: 250, height: 180 }, aspectRatio: 1.0 };
+    
+    // 1. Aumentamos los FPS a 15 y mejoramos la configuración
+    const config = { 
+      fps: 15, 
+      qrbox: { width: 260, height: 180 }, 
+      aspectRatio: 1.0,
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      }
+    };
+
+    // 2. Definimos restricciones de video para exigir mayor calidad y mejor luz/enfoque
+    const videoConstraints = {
+      facingMode: "environment",
+      width: { min: 640, ideal: 1280, max: 1920 },
+      height: { min: 480, ideal: 720, max: 1080 }
+    };
     
     await html5QrCode.start(
-      { facingMode: "environment" }, 
+      videoConstraints, 
       config,
       onScanSuccess,
       () => {} 
     );
     scanHint.textContent = "Apunta la cámara al código de barras del producto.";
   } catch(err) {
-    console.error("Fallo inicializando cámara:", err);
-    scanHint.innerHTML = `<span style="color:var(--danger)">No se pudo iniciar la cámara automáticamente.</span><br>Asegúrate de dar permisos o usa el ingreso manual.`;
+    console.error("Fallo inicializando cámara trasera:", err);
+    scanHint.innerHTML = `<span style="color:var(--danger)">No se pudo iniciar la cámara trasera en HD.</span><br>Intentando en modo básico...`;
+    
+    // Intento secundario (fallback) si la cámara del móvil bloquea la resolución HD
     try {
-        await html5QrCode.start(
-            { facingMode: "user" }, 
-            { fps: 10, qrbox: { width: 250, height: 180 } },
-            onScanSuccess, () => {}
-        );
-        scanHint.textContent = "Usando cámara frontal. Apunta el código.";
-    } catch(err2) {}
+      await html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: { width: 250, height: 180 } },
+        onScanSuccess, 
+        () => {}
+      );
+      scanHint.textContent = "Apunta la cámara al código de barras.";
+    } catch(err2) {
+      scanHint.innerHTML = `<span style="color:var(--danger)">Error al abrir cámara.</span> Usa el ingreso manual.`;
+    }
   }
 }
 

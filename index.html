@@ -3,11 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Inventario · Elegante</title>
+<title>Control de Stock · Despierta Mentes</title>
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#0F172A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Control Stock">
+<link rel="apple-touch-icon" href="icono.png">
+<!-- Manifiesto PWA -->
+<link rel="manifest" href="manifest.json">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Librería para el escáner de códigos de barras mediante cámara -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <style>
   :root {
     /* Tema Dark/Slate Elegante */
@@ -42,10 +52,57 @@
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     padding-bottom: 40px;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
   }
   h1, h2, h3, .display { font-family: 'Sora', sans-serif; letter-spacing: -0.02em; }
   .funnum { font-family: 'Fredoka', sans-serif; }
   .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* Splash Screen Styles */
+  #splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  #splash-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+  #splash-logo {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    animation: pulseLogo 2s infinite;
+    /* Placeholder fallback (mientras no encuentra la imagen) */
+    background-color: var(--surface);
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  @keyframes pulseLogo {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  }
+  #splash-loader {
+    margin-top: 30px;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--surface-2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spinLoader 1s linear infinite;
+  }
+  @keyframes spinLoader { 100% { transform: rotate(360deg); } }
+
 
   .awning {
     height: 4px; width: 100%;
@@ -198,11 +255,11 @@
   .scan-session-item:last-child { border-bottom: none; }
   .divider-or { text-align: center; font-size: 11px; color: var(--ink-soft); margin: 16px 0; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
 
-  /* Clases específicas para la firma de Nasslo Muñoz */
+  /* Clases específicas para la firma con Logo */
   .fixed { position: fixed; }
-  .bottom-4 { bottom: 1rem; }
-  .right-4 { right: 1rem; }
-  .opacity-50 { opacity: 0.5; }
+  .bottom-2 { bottom: 0.5rem; }
+  .right-2 { right: 0.5rem; }
+  .opacity-75 { opacity: 0.75; }
   .hover\:opacity-100:hover { opacity: 1; }
   .transition-opacity { transition-property: opacity; }
   .duration-500 { transition-duration: 500ms; }
@@ -211,17 +268,14 @@
   .select-none { user-select: none; }
   .flex { display: flex; }
   .flex-col { flex-direction: column; }
-  .items-end { align-items: flex-end; }
+  .items-center { align-items: center; } /* NUEVA CLASE: Para asegurar el centrado */
+  .gap-1 { gap: 0.25rem; }
   .text-\[0\.65rem\] { font-size: 0.65rem; }
-  .text-\[0\.6rem\] { font-size: 0.6rem; }
-  .text-gray-400 { color: #9ca3af; }
-  .text-gray-200 { color: #e5e7eb; }
-  .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+  .text-slate-700 { color: #94A3B8; }
   .uppercase { text-transform: uppercase; }
   .tracking-widest { letter-spacing: 0.1em; }
   .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
-  .mb-\[-4px\] { margin-bottom: -4px; }
-  .mt-1 { margin-top: 0.25rem; }
+  
   @media (min-width: 768px) {
     .md\:bottom-6 { bottom: 1.5rem; }
     .md\:right-8 { right: 2rem; }
@@ -255,6 +309,13 @@
 </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen">
+    <img src="icono.png" alt="Despierta Mentes Logo" id="splash-logo" onerror="this.style.display='none'">
+    <div id="splash-loader"></div>
+</div>
+
 <div class="awning"></div>
 <div class="app">
 
@@ -306,14 +367,13 @@
   </div>
 
   <div class="list" id="list"></div>
-
 </div>
 
-<div class="fixed bottom-4 right-4 md:bottom-6 md:right-8 opacity-50 hover:opacity-100 transition-opacity duration-500 z-50 print:hidden pointer-events-none select-none">
-    <div class="flex flex-col items-end">
-        <span class="text-[0.65rem] text-gray-400 uppercase tracking-widest font-sans mb-[-4px]">Creada por</span>
-        <span class="text-2xl text-gray-200" style="font-family: 'Brush Script MT', 'Lucida Handwriting', 'Great Vibes', cursive;">Nasslo Muñoz</span>
-        <span class="text-[0.6rem] text-gray-400 font-sans tracking-widest uppercase mt-1">Ingeniero Informático</span>
+<!-- Nueva Firma Corporativa (Con Logo Imagen más vistoso) -->
+<div class="fixed bottom-2 right-2 md:bottom-6 md:right-8 opacity-75 hover:opacity-100 transition-opacity duration-500 z-50 print:hidden pointer-events-none select-none">
+    <div class="flex flex-col items-center gap-1"> <!-- CAMBIO AQUÍ: Usamos items-center -->
+        <span class="text-[0.65rem] text-slate-700 uppercase tracking-widest font-sans" style="text-align: center; width: 100%;">Creada por</span>
+        <img src="logofirma.png" alt="Logo de la Empresa" style="width: 120px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
     </div>
 </div>
 
@@ -464,7 +524,7 @@
       <input type="number" id="scanQty" min="1" value="1" style="width: 120px; text-align: center; font-size: 18px; font-weight: bold; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px; color: var(--ink); outline: none;">
     </div>
 
-    <div class="divider-or">o ingresa el código manualmente</div>
+    <div class="divider-or">o ingresa el código manually</div>
     <div class="scan-inline">
       <input type="text" id="manualCode" placeholder="Ingresar código...">
       <button class="btn btn-primary btn-sm" id="btnManualCode" type="button">Buscar</button>
@@ -478,6 +538,32 @@
 </div>
 
 <script>
+/* Registro del Service Worker para PWA (con validación de entorno) */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Validamos que no estemos ejecutando el script desde un blob o un entorno file:// 
+    // Esto evita el error en la vista previa del Canvas, pero funcionará en GitHub Pages (https://)
+    if (window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('Service Worker Registrado correctamente!', reg))
+        .catch(err => console.error('Error al registrar Service Worker', err));
+    } else {
+       console.log('Entorno local detectado. El Service Worker no se registrará para evitar errores de protocolo.');
+    }
+  });
+}
+
+/* Lógica del Splash Screen */
+document.addEventListener('DOMContentLoaded', () => {
+    // Ocultar la pantalla de carga después de 2.5 segundos
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.classList.add('hidden');
+        // Remover del DOM después de la transición (0.5s)
+        setTimeout(() => splash.style.display = 'none', 500);
+    }, 2500); 
+});
+
 const PALETTE = ['#6366F1','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#EC4899','#14B8A6'];
 let products = [];
 let categories = ['Abarrotes', 'Bebidas', 'Electrónica', 'Limpieza', 'Ropa'];

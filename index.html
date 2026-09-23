@@ -1044,8 +1044,30 @@ async function startCamera(){
   try {
     scanHint.textContent = "Solicitando permisos de cámara...";
     html5QrCode = new Html5Qrcode("reader");
-    const config = { fps: 10, qrbox: { width: 250, height: 180 }, aspectRatio: 1.0 };
     
+    // CONFIGURACIÓN MEJORADA Y CORREGIDA: 
+    const config = { 
+      fps: 30, 
+      qrbox: { width: 320, height: 150 }, 
+      aspectRatio: 1.0,
+      formatsToSupport: [ 
+        Html5QrcodeSupportedFormats.EAN_13, 
+        Html5QrcodeSupportedFormats.EAN_8, 
+        Html5QrcodeSupportedFormats.UPC_A, 
+        Html5QrcodeSupportedFormats.UPC_E, 
+        Html5QrcodeSupportedFormats.CODE_128, 
+        Html5QrcodeSupportedFormats.CODE_39, 
+        Html5QrcodeSupportedFormats.QR_CODE 
+      ],
+      // La resolución y el enfoque DEBEN ir aquí según la librería
+      videoConstraints: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        advanced: [{ focusMode: "continuous" }]
+      }
+    };
+    
+    // El primer parámetro AHORA TIENE EXACTAMENTE 1 CLAVE ({ facingMode: "environment" })
     await html5QrCode.start(
       { facingMode: "environment" }, 
       config,
@@ -1057,9 +1079,14 @@ async function startCamera(){
     console.error("Fallo inicializando cámara:", err);
     scanHint.innerHTML = `<span style="color:var(--danger)">No se pudo iniciar la cámara automáticamente.</span><br>Asegúrate de dar permisos o usa el ingreso manual.`;
     try {
+        // CORRECCIÓN TAMBIÉN EN EL FALLBACK (Cámara frontal)
         await html5QrCode.start(
             { facingMode: "user" }, 
-            { fps: 10, qrbox: { width: 250, height: 180 } },
+            { 
+              fps: 30, 
+              qrbox: { width: 320, height: 150 },
+              videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } }
+            },
             onScanSuccess, () => {}
         );
         scanHint.textContent = "Usando cámara frontal. Apunta el código.";

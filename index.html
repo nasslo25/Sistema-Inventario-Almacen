@@ -54,7 +54,7 @@
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     padding-bottom: 40px;
-    overflow-x: hidden; /* Prevenir scroll horizontal */
+    overflow-x: hidden;
   }
   h1, h2, h3, .display { font-family: 'Sora', sans-serif; letter-spacing: -0.02em; }
   .funnum { font-family: 'Fredoka', sans-serif; }
@@ -62,32 +62,16 @@
 
   /* Splash Screen Styles */
   #splash-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: var(--bg);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: var(--bg); display: flex; flex-direction: column;
+    justify-content: center; align-items: center; z-index: 9999;
     transition: opacity 0.5s ease, visibility 0.5s ease;
   }
-  #splash-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-  }
+  #splash-screen.hidden { opacity: 0; visibility: hidden; }
   #splash-logo {
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
-    animation: pulseLogo 2s infinite;
-    /* Placeholder fallback (mientras no encuentra la imagen) */
-    background-color: var(--surface);
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 180px; height: 180px; object-fit: contain;
+    animation: pulseLogo 2s infinite; background-color: var(--surface);
+    border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
   @keyframes pulseLogo {
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
@@ -95,13 +79,9 @@
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
   }
   #splash-loader {
-    margin-top: 30px;
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--surface-2);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spinLoader 1s linear infinite;
+    margin-top: 30px; width: 40px; height: 40px;
+    border: 3px solid var(--surface-2); border-top-color: var(--primary);
+    border-radius: 50%; animation: spinLoader 1s linear infinite;
   }
   @keyframes spinLoader { 100% { transform: rotate(360deg); } }
 
@@ -127,14 +107,12 @@
     border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-family: 'Inter', sans-serif;
     font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s ease;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra base para profundidad */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
   .btn:active { transform: scale(.97); }
   
-  /* Botones principales (Lila/Índigo) */
   .btn-primary, .btn-scan { 
-    background: #8B5CF6; /* Lila de la imagen */
-    color: #fff; 
+    background: #8B5CF6; color: #fff; 
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); 
   }
   .btn-primary:hover, .btn-scan:hover { 
@@ -142,20 +120,11 @@
     box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.1); 
   }
   
-  /* Botones secundarios (Grises oscuros para uso en modales) */
   .btn-ghost { 
-    background: #334155; /* Slate 700 */
-    color: #F8FAFC; 
-    border: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background: #334155; color: #F8FAFC; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .btn-ghost:hover { 
-    background: #475569; /* Slate 600 */
-    border-color: rgba(255,255,255,0.1);
-  }
+  .btn-ghost:hover { background: #475569; border-color: rgba(255,255,255,0.1); }
 
-  /* --- NUEVOS COLORES ELEGANTES PARA BOTONERA SUPERIOR --- */
-  
   /* Consultar (Azul Cielo/Cyan) */
   .btn-consultar { background: linear-gradient(135deg, #0284C7, #0369A1); color: #fff; border: 1px solid rgba(2, 132, 199, 0.4); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
   .btn-consultar:hover { background: linear-gradient(135deg, #0369A1, #075985); box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
@@ -371,6 +340,7 @@
       </div>
     </div>
     <div class="topbar-actions">
+      <!-- Botones con clases elegantes aplicadas -->
       <button class="btn btn-consultar" id="btnScanConsult">🔍 Consultar</button>
       <button class="btn btn-scan" id="btnScanSell">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M9 12h6"/></svg> 
@@ -412,7 +382,6 @@
   <div class="list" id="list"></div>
 </div>
 
-<!-- Nueva Firma Corporativa (Con Logo Imagen más vistoso) -->
 <div class="fixed bottom-2 right-2 md:bottom-6 md:right-8 opacity-75 hover:opacity-100 transition-opacity duration-500 z-50 print:hidden pointer-events-none select-none">
     <div class="flex flex-col items-center gap-1">
         <span class="text-[0.65rem] text-slate-700 uppercase tracking-widest font-sans" style="text-align: center; width: 100%;">Creada por</span>
@@ -529,6 +498,7 @@
   <div class="modal wide">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0;">Reporte de Movimientos</h2>
+        <!-- Botón de Excel añadido -->
         <button class="btn btn-success btn-sm" id="btnExportExcel" style="background: #10B981; color: white;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
             Exportar Excel
@@ -568,7 +538,6 @@
   <div class="modal">
     <h2 id="scannerTitle">Escanear Código</h2>
     
-    <!-- Nuevo selector de cámaras -->
     <div id="cameraSelectWrap" style="display:none; margin-bottom: 12px;">
       <select id="cameraSelect" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--primary); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;"></select>
     </div>
@@ -595,7 +564,6 @@
 </div>
 
 <script>
-/* Registro del Service Worker para PWA (con validación de entorno) */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     if (window.location.protocol.startsWith('http')) {
@@ -603,12 +571,11 @@ if ('serviceWorker' in navigator) {
         .then(reg => console.log('Service Worker Registrado correctamente!', reg))
         .catch(err => console.error('Error al registrar Service Worker', err));
     } else {
-       console.log('Entorno local detectado. El Service Worker no se registrará para evitar errores de protocolo.');
+       console.log('Entorno local detectado. El Service Worker no se registrará.');
     }
   });
 }
 
-/* Lógica del Splash Screen */
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -649,19 +616,17 @@ async function loadData(){
     products = resP ? JSON.parse(resP) : [];
     const resC = localStorage.getItem('inv_categories');
     if(resC) categories = JSON.parse(resC);
-  }catch(e){ 
-    console.warn('Error al leer de localStorage, usando valores por defecto', e); 
-  }
+  }catch(e){ console.warn('Error al leer de localStorage', e); }
 }
 
 async function saveProducts(){
   try{ localStorage.setItem('inv_products', JSON.stringify(products)); }
-  catch(e){ console.error('Error guardando productos localmente', e); }
+  catch(e){ console.error('Error guardando productos', e); }
 }
 
 async function saveCategories(){
   try{ localStorage.setItem('inv_categories', JSON.stringify(categories)); }
-  catch(e){ console.error('Error guardando categorías localmente', e); }
+  catch(e){ console.error('Error guardando categorías', e); }
 }
 
 async function loadMovements(){
@@ -680,7 +645,7 @@ async function logMovement(productId, productName, type, qty, note){
       date: new Date().toISOString()
     });
     localStorage.setItem('inv_movements', JSON.stringify(movs.slice(0,2000)));
-  }catch(e){ console.error('Error guardando movimiento localmente', e); }
+  }catch(e){ console.error('Error guardando movimiento', e); }
 }
 
 document.getElementById('btnExportDB').onclick = async () => {
@@ -1016,8 +981,7 @@ async function renderReport(){
   let soldUnits=0, soldValue=0, boughtUnits=0, newProducts=0, newUnits=0;
   const byProduct = {};
 
-  // Inicializar TODOS los productos actuales (incluso si no tuvieron movimiento en las fechas)
-  // para que siempre podamos reportar el "Stock Actual" de todo el inventario.
+  // Inicializar TODOS los productos para incluir el Stock Actual y Valor en el Excel
   products.forEach(p => {
       byProduct[p.id] = {
           name: p.name,
@@ -1029,10 +993,8 @@ async function renderReport(){
       };
   });
 
-  // Procesar los movimientos de las fechas seleccionadas
   inRange.forEach(m=>{
     if(!byProduct[m.productId]) {
-        // En caso de que el movimiento sea de un producto que fue ELIMINADO
         byProduct[m.productId] = {
             name: m.productName + ' (Eliminado)', 
             vendido: 0, comprado: 0, ingresado: 0, 
@@ -1095,6 +1057,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 document.getElementById('rangeFrom').addEventListener('change', renderReport);
 document.getElementById('rangeTo').addEventListener('change', renderReport);
 
+// Botón de exportación a Excel
 document.getElementById('btnExportExcel').onclick = () => {
     const tableWrap = document.getElementById('reportTableWrap');
     const table = tableWrap.querySelector('table');
@@ -1104,13 +1067,9 @@ document.getElementById('btnExportExcel').onclick = () => {
         return;
     }
 
-    // 1. Crear un libro de Excel (Workbook)
     const wb = XLSX.utils.book_new();
-    
-    // 2. Convertir la tabla HTML a una hoja de cálculo (Worksheet)
     const ws = XLSX.utils.table_to_sheet(table);
     
-    // 3. Ajustar el ancho de TODAS las columnas (incluyendo las nuevas)
     const colWidths = [
         { wch: 30 }, // Producto
         { wch: 15 }, // Ventas
@@ -1121,10 +1080,8 @@ document.getElementById('btnExportExcel').onclick = () => {
     ];
     ws['!cols'] = colWidths;
 
-    // 4. Añadir la hoja al libro
     XLSX.utils.book_append_sheet(wb, ws, "Reporte");
     
-    // 5. Generar el nombre del archivo basado en el período
     let fileName = `Reporte_Inventario_${currentPeriod}`;
     if (currentPeriod === 'custom') {
         fileName += `_${document.getElementById('rangeFrom').value}_al_${document.getElementById('rangeTo').value}`;
@@ -1134,7 +1091,6 @@ document.getElementById('btnExportExcel').onclick = () => {
     }
     fileName += '.xlsx';
 
-    // 6. Descargar el archivo nativo .xlsx
     XLSX.writeFile(wb, fileName);
 };
 
@@ -1171,6 +1127,7 @@ function showScanMsg(text, kind){
   setTimeout(()=>{ el.classList.remove('show'); }, 3000);
 }
 
+// ESTA SECCIÓN SE MANTIENE 100% INTACTA COMO PEDISTE
 async function startCamera(){
   try {
     scanHint.textContent = "Buscando cámaras disponibles...";
@@ -1217,6 +1174,7 @@ async function startCamera(){
   }
 }
 
+// ESTA SECCIÓN SE MANTIENE 100% INTACTA COMO PEDISTE
 async function startSpecificCamera(cameraId) {
   // Configuración de escaneo (Optimizada para códigos de barras y resolución HD)
   const config = { 

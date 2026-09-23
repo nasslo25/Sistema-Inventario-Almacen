@@ -105,7 +105,6 @@
   }
   @keyframes spinLoader { 100% { transform: rotate(360deg); } }
 
-
   .awning {
     height: 4px; width: 100%;
     background: linear-gradient(90deg, var(--primary), var(--success), var(--warning), var(--danger));
@@ -312,7 +311,7 @@
   .select-none { user-select: none; }
   .flex { display: flex; }
   .flex-col { flex-direction: column; }
-  .items-center { align-items: center; } /* NUEVA CLASE: Para asegurar el centrado */
+  .items-center { align-items: center; } 
   .gap-1 { gap: 0.25rem; }
   .text-\[0\.65rem\] { font-size: 0.65rem; }
   .text-slate-700 { color: #94A3B8; }
@@ -415,7 +414,7 @@
 
 <!-- Nueva Firma Corporativa (Con Logo Imagen más vistoso) -->
 <div class="fixed bottom-2 right-2 md:bottom-6 md:right-8 opacity-75 hover:opacity-100 transition-opacity duration-500 z-50 print:hidden pointer-events-none select-none">
-    <div class="flex flex-col items-center gap-1"> <!-- CAMBIO AQUÍ: Usamos items-center -->
+    <div class="flex flex-col items-center gap-1">
         <span class="text-[0.65rem] text-slate-700 uppercase tracking-widest font-sans" style="text-align: center; width: 100%;">Creada por</span>
         <img src="logofirma.png" alt="Logo de la Empresa" style="width: 120px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
     </div>
@@ -599,8 +598,6 @@
 /* Registro del Service Worker para PWA (con validación de entorno) */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Validamos que no estemos ejecutando el script desde un blob o un entorno file:// 
-    // Esto evita el error en la vista previa del Canvas, pero funcionará en GitHub Pages (https://)
     if (window.location.protocol.startsWith('http')) {
       navigator.serviceWorker.register('./service-worker.js')
         .then(reg => console.log('Service Worker Registrado correctamente!', reg))
@@ -613,11 +610,9 @@ if ('serviceWorker' in navigator) {
 
 /* Lógica del Splash Screen */
 document.addEventListener('DOMContentLoaded', () => {
-    // Ocultar la pantalla de carga después de 2.5 segundos
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         splash.classList.add('hidden');
-        // Remover del DOM después de la transición (0.5s)
         setTimeout(() => splash.style.display = 'none', 500);
     }, 2500); 
 });
@@ -1021,8 +1016,29 @@ async function renderReport(){
   let soldUnits=0, soldValue=0, boughtUnits=0, newProducts=0, newUnits=0;
   const byProduct = {};
 
+  // Inicializar TODOS los productos actuales (incluso si no tuvieron movimiento en las fechas)
+  // para que siempre podamos reportar el "Stock Actual" de todo el inventario.
+  products.forEach(p => {
+      byProduct[p.id] = {
+          name: p.name,
+          vendido: 0,
+          comprado: 0,
+          ingresado: 0,
+          stock: p.quantity,
+          valor: p.quantity * p.price
+      };
+  });
+
+  // Procesar los movimientos de las fechas seleccionadas
   inRange.forEach(m=>{
-    if(!byProduct[m.productId]) byProduct[m.productId] = {name:m.productName, vendido:0, comprado:0, ingresado:0};
+    if(!byProduct[m.productId]) {
+        // En caso de que el movimiento sea de un producto que fue ELIMINADO
+        byProduct[m.productId] = {
+            name: m.productName + ' (Eliminado)', 
+            vendido: 0, comprado: 0, ingresado: 0, 
+            stock: 0, valor: 0 
+        };
+    }
     if(m.type === 'venta'){ soldUnits += m.qty; soldValue += m.qty * (priceMap[m.productId]||0); byProduct[m.productId].vendido += m.qty; } 
     else if(m.type === 'compra'){ boughtUnits += m.qty; byProduct[m.productId].comprado += m.qty; } 
     else if(m.type === 'ingreso'){ newProducts += 1; newUnits += m.qty; byProduct[m.productId].ingresado += m.qty; }
@@ -1035,17 +1051,31 @@ async function renderReport(){
   document.getElementById('repNewUnits').textContent = newUnits;
   document.getElementById('repTotalMoves').textContent = inRange.length;
 
-  const rows = Object.values(byProduct).sort((a,b)=> (b.vendido+b.comprado+b.ingresado) - (a.vendido+a.comprado+a.ingresado));
+  const rows = Object.values(byProduct).sort((a,b)=> a.name.localeCompare(b.name));
   const wrap = document.getElementById('reportTableWrap');
   if(rows.length === 0){
-    wrap.innerHTML = '<div class="report-empty">No hay actividad en el período seleccionado.</div>';
+    wrap.innerHTML = '<div class="report-empty">No hay datos para mostrar en el reporte.</div>';
     return;
   }
   wrap.innerHTML = `
     <table class="report-table">
-      <thead><tr><th>Producto</th><th style="text-align:right;">Ventas</th><th style="text-align:right;">Compras</th><th style="text-align:right;">Ingreso Inicial</th></tr></thead>
+      <thead><tr>
+        <th>Producto</th>
+        <th style="text-align:right;">Ventas</th>
+        <th style="text-align:right;">Compras</th>
+        <th style="text-align:right;">Ingreso Inicial</th>
+        <th style="text-align:right; font-weight:800; color:var(--ink);">Stock Actual</th>
+        <th style="text-align:right; font-weight:800; color:var(--success);">Valor Actual</th>
+      </tr></thead>
       <tbody>
-        ${rows.map(r=>`<tr><td>${r.name}</td><td class="num">${r.vendido||'—'}</td><td class="num">${r.comprado||'—'}</td><td class="num">${r.ingresado||'—'}</td></tr>`).join('')}
+        ${rows.map(r=>`<tr>
+            <td>${r.name}</td>
+            <td class="num">${r.vendido||'0'}</td>
+            <td class="num">${r.comprado||'0'}</td>
+            <td class="num">${r.ingresado||'0'}</td>
+            <td class="num" style="font-weight:bold; color:var(--ink);">${r.stock}</td>
+            <td class="num" style="font-weight:bold; color:var(--success);">${fmtMoney(r.valor)}</td>
+        </tr>`).join('')}
       </tbody>
     </table>`;
 }
@@ -1070,7 +1100,7 @@ document.getElementById('btnExportExcel').onclick = () => {
     const table = tableWrap.querySelector('table');
     
     if (!table) {
-        alert("No hay datos en la tabla para exportar en este período.");
+        alert("No hay datos en la tabla para exportar.");
         return;
     }
 
@@ -1080,12 +1110,14 @@ document.getElementById('btnExportExcel').onclick = () => {
     // 2. Convertir la tabla HTML a una hoja de cálculo (Worksheet)
     const ws = XLSX.utils.table_to_sheet(table);
     
-    // 3. (Opcional) Ajustar el ancho de las columnas
+    // 3. Ajustar el ancho de TODAS las columnas (incluyendo las nuevas)
     const colWidths = [
         { wch: 30 }, // Producto
         { wch: 15 }, // Ventas
         { wch: 15 }, // Compras
-        { wch: 20 }  // Ingresos
+        { wch: 15 }, // Ingresos Iniciales
+        { wch: 15 }, // Stock Actual
+        { wch: 20 }  // Valor Actual
     ];
     ws['!cols'] = colWidths;
 
@@ -1102,7 +1134,7 @@ document.getElementById('btnExportExcel').onclick = () => {
     }
     fileName += '.xlsx';
 
-    // 6. Descargar el archivo
+    // 6. Descargar el archivo nativo .xlsx
     XLSX.writeFile(wb, fileName);
 };
 
@@ -1122,11 +1154,11 @@ function playBeep() {
     const gainNode = audioCtx.createGain();
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    oscillator.type = 'sine'; // Tono clásico
-    oscillator.frequency.value = 880; // Frecuencia agradable
-    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volumen suave
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880; 
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
     oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.1); // Duración muy corta
+    oscillator.stop(audioCtx.currentTime + 0.1); 
   } catch(e) {
     console.log('El audio no pudo reproducirse:', e);
   }
@@ -1186,11 +1218,15 @@ async function startCamera(){
 }
 
 async function startSpecificCamera(cameraId) {
-  // Configuración de escaneo (Optimizada para códigos de barras)
+  // Configuración de escaneo (Optimizada para códigos de barras y resolución HD)
   const config = { 
     fps: 30, 
     qrbox: { width: 320, height: 150 }, 
     aspectRatio: 1.0,
+    videoConstraints: {
+        width: { min: 640, ideal: 1280, max: 1920 },
+        height: { min: 480, ideal: 720, max: 1080 }
+    },
     formatsToSupport: [ 
       Html5QrcodeSupportedFormats.EAN_13, 
       Html5QrcodeSupportedFormats.EAN_8, 
@@ -1203,7 +1239,6 @@ async function startSpecificCamera(cameraId) {
   };
   
   try {
-    // Al pasar la ID física de la cámara (cameraId), no hay margen de error
     await html5QrCode.start(
       cameraId,
       config,

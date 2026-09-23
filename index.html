@@ -17,6 +17,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Librería para el escáner de códigos de barras mediante cámara -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Librería SheetJS para exportar a Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <style>
   :root {
@@ -126,13 +128,55 @@
     border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-family: 'Inter', sans-serif;
     font-weight: 600; font-size: 14px; cursor: pointer; transition: all .2s ease;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra base para profundidad */
   }
   .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
-  .btn-primary:hover { background: var(--primary-hover); }
-  .btn-scan { background: #8B5CF6; color: #fff; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2); }
-  .btn-ghost { background: var(--surface-2); color: var(--ink); }
-  .btn-ghost:hover { background: #475569; }
+  
+  /* Botones principales (Lila/Índigo) */
+  .btn-primary, .btn-scan { 
+    background: #8B5CF6; /* Lila de la imagen */
+    color: #fff; 
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); 
+  }
+  .btn-primary:hover, .btn-scan:hover { 
+    background: #7C3AED; 
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.1); 
+  }
+  
+  /* Botones secundarios (Grises oscuros para uso en modales) */
+  .btn-ghost { 
+    background: #334155; /* Slate 700 */
+    color: #F8FAFC; 
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .btn-ghost:hover { 
+    background: #475569; /* Slate 600 */
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  /* --- NUEVOS COLORES ELEGANTES PARA BOTONERA SUPERIOR --- */
+  
+  /* Consultar (Azul Cielo/Cyan) */
+  .btn-consultar { background: linear-gradient(135deg, #0284C7, #0369A1); color: #fff; border: 1px solid rgba(2, 132, 199, 0.4); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+  .btn-consultar:hover { background: linear-gradient(135deg, #0369A1, #075985); box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
+
+  /* Ingresar Code (Verde/Teal) */
+  .btn-ingresar { background: linear-gradient(135deg, #0D9488, #0F766E); color: #fff; border: 1px solid rgba(13, 148, 136, 0.4); box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+  .btn-ingresar:hover { background: linear-gradient(135deg, #0F766E, #115E59); box-shadow: 0 6px 16px rgba(13, 148, 136, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
+
+  /* Reportes (Rosa/Magenta) */
+  .btn-reportes { background: linear-gradient(135deg, #DB2777, #BE185D); color: #fff; border: 1px solid rgba(219, 39, 119, 0.4); box-shadow: 0 4px 12px rgba(219, 39, 119, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+  .btn-reportes:hover { background: linear-gradient(135deg, #BE185D, #9D174D); box-shadow: 0 6px 16px rgba(219, 39, 119, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
+
+  /* Respaldar BD (Gris Azulado Elegante) */
+  .btn-respaldar { background: linear-gradient(135deg, #4B5563, #374151); color: #fff; border: 1px solid rgba(75, 85, 99, 0.4); box-shadow: 0 4px 12px rgba(75, 85, 99, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+  .btn-respaldar:hover { background: linear-gradient(135deg, #374151, #1F2937); box-shadow: 0 6px 16px rgba(75, 85, 99, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
+
+  /* Cargar BD (Ámbar/Dorado Oscuro) */
+  .btn-cargar { background: linear-gradient(135deg, #D97706, #B45309); color: #fff; border: 1px solid rgba(217, 119, 6, 0.4); box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+  .btn-cargar:hover { background: linear-gradient(135deg, #B45309, #92400E); box-shadow: 0 6px 16px rgba(217, 119, 6, 0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
+  
   .btn-sm { padding: 8px 14px; font-size: 13px; min-height: 38px; }
   .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: var(--radius-sm); font-size: 18px; }
   .btn-success { background: var(--success); color: #fff; }
@@ -328,15 +372,15 @@
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost" id="btnScanConsult">🔍 Consultar</button>
+      <button class="btn btn-consultar" id="btnScanConsult">🔍 Consultar</button>
       <button class="btn btn-scan" id="btnScanSell">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M9 12h6"/></svg> 
         Vender
       </button>
-      <button class="btn btn-ghost" id="btnScanNew">Ingresar Code</button>
-      <button class="btn btn-ghost" id="btnReport">Reportes</button>
-      <button class="btn btn-ghost" id="btnExportDB" title="Guardar copia de seguridad en un archivo local">💾 Respaldar BD</button>
-      <button class="btn btn-ghost" id="btnImportDB" title="Cargar archivo de base de datos local">📂 Cargar BD</button>
+      <button class="btn btn-ingresar" id="btnScanNew">Ingresar Code</button>
+      <button class="btn btn-reportes" id="btnReport">Reportes</button>
+      <button class="btn btn-respaldar" id="btnExportDB" title="Guardar copia de seguridad en un archivo local">💾 Respaldar BD</button>
+      <button class="btn btn-cargar" id="btnImportDB" title="Cargar archivo de base de datos local">📂 Cargar BD</button>
       <input type="file" id="fileImportInput" accept=".json" style="display:none;">
       
       <button class="btn btn-primary" id="btnNew">+ Producto</button>
@@ -484,7 +528,14 @@
 
 <div class="overlay" id="overlayReport">
   <div class="modal wide">
-    <h2>Reporte de Movimientos</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;">Reporte de Movimientos</h2>
+        <button class="btn btn-success btn-sm" id="btnExportExcel" style="background: #10B981; color: white;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            Exportar Excel
+        </button>
+    </div>
+    
     <div class="tabs">
       <div class="tab active" data-period="today">Hoy</div>
       <div class="tab" data-period="week">Semana</div>
@@ -506,6 +557,7 @@
       <div class="report-stat"><div class="label">Unidades Ingresadas</div><div class="value" id="repNewUnits">0</div></div>
       <div class="report-stat"><div class="label">Total Transacciones</div><div class="value" id="repTotalMoves">0</div></div>
     </div>
+    
     <div id="reportTableWrap"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="closeReport">Cerrar Reportes</button>
@@ -1012,6 +1064,47 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 document.getElementById('rangeFrom').addEventListener('change', renderReport);
 document.getElementById('rangeTo').addEventListener('change', renderReport);
+
+document.getElementById('btnExportExcel').onclick = () => {
+    const tableWrap = document.getElementById('reportTableWrap');
+    const table = tableWrap.querySelector('table');
+    
+    if (!table) {
+        alert("No hay datos en la tabla para exportar en este período.");
+        return;
+    }
+
+    // 1. Crear un libro de Excel (Workbook)
+    const wb = XLSX.utils.book_new();
+    
+    // 2. Convertir la tabla HTML a una hoja de cálculo (Worksheet)
+    const ws = XLSX.utils.table_to_sheet(table);
+    
+    // 3. (Opcional) Ajustar el ancho de las columnas
+    const colWidths = [
+        { wch: 30 }, // Producto
+        { wch: 15 }, // Ventas
+        { wch: 15 }, // Compras
+        { wch: 20 }  // Ingresos
+    ];
+    ws['!cols'] = colWidths;
+
+    // 4. Añadir la hoja al libro
+    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+    
+    // 5. Generar el nombre del archivo basado en el período
+    let fileName = `Reporte_Inventario_${currentPeriod}`;
+    if (currentPeriod === 'custom') {
+        fileName += `_${document.getElementById('rangeFrom').value}_al_${document.getElementById('rangeTo').value}`;
+    } else {
+        const today = new Date().toISOString().slice(0, 10);
+        fileName += `_${today}`;
+    }
+    fileName += '.xlsx';
+
+    // 6. Descargar el archivo
+    XLSX.writeFile(wb, fileName);
+};
 
 const overlayScanner = document.getElementById('overlayScanner');
 const scanHint = document.getElementById('scanHint');

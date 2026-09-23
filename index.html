@@ -983,6 +983,7 @@ async function renderReport(){
   products.forEach(p => {
       byProduct[p.id] = {
           name: p.name,
+          precio: p.price,
           vendido: 0,
           comprado: 0,
           ingresado: 0,
@@ -995,6 +996,7 @@ async function renderReport(){
     if(!byProduct[m.productId]) {
         byProduct[m.productId] = {
             name: m.productName + ' (Eliminado)', 
+            precio: priceMap[m.productId] || 0,
             vendido: 0, comprado: 0, ingresado: 0, 
             stock: 0, valor: 0 
         };
@@ -1017,26 +1019,53 @@ async function renderReport(){
     wrap.innerHTML = '<div class="report-empty">No hay datos para mostrar en el reporte.</div>';
     return;
   }
+
+  // Variables para la fila de Totales Generales
+  let sumVendidos = 0, sumComprados = 0, sumIngresados = 0, sumStock = 0, sumValor = 0;
+
+  const tbodyHtml = rows.map(r => {
+      sumVendidos += r.vendido;
+      sumComprados += r.comprado;
+      sumIngresados += r.ingresado;
+      sumStock += r.stock;
+      sumValor += r.valor;
+
+      return `<tr>
+          <td>${r.name}</td>
+          <td class="num">${fmtMoney(r.precio)}</td>
+          <td class="num">${r.vendido||'0'}</td>
+          <td class="num">${r.ingresado||'0'}</td>
+          <td class="num">${r.comprado||'0'}</td>
+          <td class="num" style="font-weight:bold; color:var(--ink);">${r.stock}</td>
+          <td class="num" style="font-weight:bold; color:var(--success);">${fmtMoney(r.valor)}</td>
+      </tr>`;
+  }).join('');
+
   wrap.innerHTML = `
     <table class="report-table">
       <thead><tr>
         <th>Producto</th>
-        <th style="text-align:right;">Ventas</th>
-        <th style="text-align:right;">Compras</th>
-        <th style="text-align:right;">Ingreso Inicial</th>
+        <th style="text-align:right;">Precio Unit.</th>
+        <th style="text-align:right;">Vendidos</th>
+        <th style="text-align:right;">Ingresos Nuevos</th>
+        <th style="text-align:right;">Comprados</th>
         <th style="text-align:right; font-weight:800; color:var(--ink);">Stock Actual</th>
-        <th style="text-align:right; font-weight:800; color:var(--success);">Valor Actual</th>
+        <th style="text-align:right; font-weight:800; color:var(--success);">Valor Total</th>
       </tr></thead>
       <tbody>
-        ${rows.map(r=>`<tr>
-            <td>${r.name}</td>
-            <td class="num">${r.vendido||'0'}</td>
-            <td class="num">${r.comprado||'0'}</td>
-            <td class="num">${r.ingresado||'0'}</td>
-            <td class="num" style="font-weight:bold; color:var(--ink);">${r.stock}</td>
-            <td class="num" style="font-weight:bold; color:var(--success);">${fmtMoney(r.valor)}</td>
-        </tr>`).join('')}
+        ${tbodyHtml}
       </tbody>
+      <tfoot>
+        <tr style="background-color: var(--surface-2); border-top: 2px solid var(--primary);">
+            <td style="font-weight:bold; padding: 12px; font-family:'IBM Plex Mono', monospace;">TOTALES</td>
+            <td class="num" style="font-weight:bold;">-</td>
+            <td class="num" style="font-weight:bold;">${sumVendidos}</td>
+            <td class="num" style="font-weight:bold;">${sumIngresados}</td>
+            <td class="num" style="font-weight:bold;">${sumComprados}</td>
+            <td class="num" style="font-weight:bold; color:var(--ink);">${sumStock}</td>
+            <td class="num" style="font-weight:bold; color:var(--success); font-size: 16px;">${fmtMoney(sumValor)}</td>
+        </tr>
+      </tfoot>
     </table>`;
 }
 
@@ -1067,17 +1096,19 @@ document.getElementById('btnExportExcel').onclick = () => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.table_to_sheet(table);
     
+    // Anchos de columna optimizados para el nuevo formato
     const colWidths = [
-        { wch: 30 }, // Producto
-        { wch: 15 }, // Ventas
-        { wch: 15 }, // Compras
-        { wch: 15 }, // Ingresos Iniciales
+        { wch: 35 }, // Producto
+        { wch: 15 }, // Precio Unit.
+        { wch: 12 }, // Vendidos
+        { wch: 18 }, // Ingresos Nuevos
+        { wch: 15 }, // Comprados
         { wch: 15 }, // Stock Actual
-        { wch: 20 }  // Valor Actual
+        { wch: 20 }  // Valor Total
     ];
     ws['!cols'] = colWidths;
 
-    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+    XLSX.utils.book_append_sheet(wb, ws, "Reporte_Inventario");
     
     let fileName = `Reporte_Inventario_${currentPeriod}`;
     if (currentPeriod === 'custom') {

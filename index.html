@@ -516,6 +516,12 @@
 <div class="overlay" id="overlayScanner">
   <div class="modal">
     <h2 id="scannerTitle">Escanear Código</h2>
+    
+    <!-- Nuevo selector de cámaras -->
+    <div id="cameraSelectWrap" style="display:none; margin-bottom: 12px;">
+      <select id="cameraSelect" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--primary); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;"></select>
+    </div>
+
     <div id="reader"></div>
     <p class="scan-hint" id="scanHint">Apunta la cámara al código de barras del producto.</p>
     
@@ -1042,55 +1048,79 @@ function showScanMsg(text, kind){
 
 async function startCamera(){
   try {
-    scanHint.textContent = "Solicitando permisos de cámara...";
-    html5QrCode = new Html5Qrcode("reader");
+    scanHint.textContent = "Buscando cámaras disponibles...";
+    // 1. Pedimos al navegador la lista de todas las cámaras del dispositivo
+    const devices = await Html5Qrcode.getCameras();
     
-    // CONFIGURACIÓN MEJORADA Y CORREGIDA: 
-    const config = { 
-      fps: 30, 
-      qrbox: { width: 320, height: 150 }, 
-      aspectRatio: 1.0,
-      formatsToSupport: [ 
-        Html5QrcodeSupportedFormats.EAN_13, 
-        Html5QrcodeSupportedFormats.EAN_8, 
-        Html5QrcodeSupportedFormats.UPC_A, 
-        Html5QrcodeSupportedFormats.UPC_E, 
-        Html5QrcodeSupportedFormats.CODE_128, 
-        Html5QrcodeSupportedFormats.CODE_39, 
-        Html5QrcodeSupportedFormats.QR_CODE 
-      ],
-      // La resolución y el enfoque DEBEN ir aquí según la librería
-      videoConstraints: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        advanced: [{ focusMode: "continuous" }]
+    if (devices && devices.length > 0) {
+      const cameraSelect = document.getElementById('cameraSelect');
+      cameraSelect.innerHTML = ''; 
+      
+      let defaultCameraId = devices[0].id; 
+      
+      // 2. Llenamos el selector y buscamos cuál es la trasera por su nombre
+      for (const device of devices) {
+        const label = (device.label || '').toLowerCase();
+        cameraSelect.innerHTML += `<option value="${device.id}">${device.label || 'Cámara ' + device.id}</option>`;
+        
+        // Si el nombre dice back, trasera o environment, la elegimos por defecto
+        if (label.includes('back') || label.includes('trasera') || label.includes('environment')) {
+          defaultCameraId = device.id;
+        }
       }
-    };
-    
-    // El primer parámetro AHORA TIENE EXACTAMENTE 1 CLAVE ({ facingMode: "environment" })
+      
+      cameraSelect.value = defaultCameraId;
+      document.getElementById('cameraSelectWrap').style.display = 'block';
+      
+      // 3. Evento: si el usuario cambia el selector, reiniciamos la cámara con la elegida
+      cameraSelect.onchange = async () => {
+         await stopCamera();
+         html5QrCode = new Html5Qrcode("reader");
+         await startSpecificCamera(cameraSelect.value);
+      };
+      
+      // Iniciamos la cámara por defecto
+      html5QrCode = new Html5Qrcode("reader");
+      await startSpecificCamera(defaultCameraId);
+      
+    } else {
+       scanHint.innerHTML = `<span style="color:var(--danger)">No se detectaron cámaras en tu dispositivo.</span>`;
+    }
+  } catch (err) {
+    console.error("Error obteniendo cámaras:", err);
+    scanHint.innerHTML = `<span style="color:var(--danger)">No se pudo acceder a la cámara. Revisa los permisos de tu navegador.</span>`;
+  }
+}
+
+async function startSpecificCamera(cameraId) {
+  // Configuración de escaneo (Optimizada para códigos de barras)
+  const config = { 
+    fps: 30, 
+    qrbox: { width: 320, height: 150 }, 
+    aspectRatio: 1.0,
+    formatsToSupport: [ 
+      Html5QrcodeSupportedFormats.EAN_13, 
+      Html5QrcodeSupportedFormats.EAN_8, 
+      Html5QrcodeSupportedFormats.UPC_A, 
+      Html5QrcodeSupportedFormats.UPC_E, 
+      Html5QrcodeSupportedFormats.CODE_128, 
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.QR_CODE
+    ]
+  };
+  
+  try {
+    // Al pasar la ID física de la cámara (cameraId), no hay margen de error
     await html5QrCode.start(
-      { facingMode: "environment" }, 
+      cameraId,
       config,
       onScanSuccess,
       () => {} 
     );
-    scanHint.textContent = "Apunta la cámara al código de barras del producto.";
-  } catch(err) {
-    console.error("Fallo inicializando cámara:", err);
-    scanHint.innerHTML = `<span style="color:var(--danger)">No se pudo iniciar la cámara automáticamente.</span><br>Asegúrate de dar permisos o usa el ingreso manual.`;
-    try {
-        // CORRECCIÓN TAMBIÉN EN EL FALLBACK (Cámara frontal)
-        await html5QrCode.start(
-            { facingMode: "user" }, 
-            { 
-              fps: 30, 
-              qrbox: { width: 320, height: 150 },
-              videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } }
-            },
-            onScanSuccess, () => {}
-        );
-        scanHint.textContent = "Usando cámara frontal. Apunta el código.";
-    } catch(err2) {}
+    scanHint.textContent = "Apunta la cámara al código de barras.";
+  } catch (err) {
+     console.error("Fallo iniciando la cámara elegida:", err);
+     scanHint.innerHTML = `<span style="color:var(--danger)">Error al iniciar esta cámara. Intenta seleccionar otra en la lista de arriba.</span>`;
   }
 }
 

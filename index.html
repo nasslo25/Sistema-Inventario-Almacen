@@ -60,7 +60,6 @@
   .funnum { font-family: 'Fredoka', sans-serif; }
   .mono { font-family: 'IBM Plex Mono', monospace; }
 
-  /* Splash Screen Styles */
   #splash-screen {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background-color: var(--bg); display: flex; flex-direction: column;
@@ -267,7 +266,6 @@
   .scan-session-item:last-child { border-bottom: none; }
   .divider-or { text-align: center; font-size: 11px; color: var(--ink-soft); margin: 16px 0; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
 
-  /* Clases específicas para la firma con Logo */
   .fixed { position: fixed; }
   .bottom-2 { bottom: 0.5rem; }
   .right-2 { right: 0.5rem; }
@@ -981,7 +979,7 @@ async function renderReport(){
   let soldUnits=0, soldValue=0, boughtUnits=0, newProducts=0, newUnits=0;
   const byProduct = {};
 
-  // Inicializar TODOS los productos para incluir el Stock Actual y Valor en el Excel
+  // Inicializar TODOS los productos para incluir el Stock Actual y Valor en el Excel siempre
   products.forEach(p => {
       byProduct[p.id] = {
           name: p.name,
@@ -1057,7 +1055,6 @@ document.querySelectorAll('.tab').forEach(tab=>{
 document.getElementById('rangeFrom').addEventListener('change', renderReport);
 document.getElementById('rangeTo').addEventListener('change', renderReport);
 
-// Botón de exportación a Excel
 document.getElementById('btnExportExcel').onclick = () => {
     const tableWrap = document.getElementById('reportTableWrap');
     const table = tableWrap.querySelector('table');
@@ -1127,11 +1124,10 @@ function showScanMsg(text, kind){
   setTimeout(()=>{ el.classList.remove('show'); }, 3000);
 }
 
-// ESTA SECCIÓN SE MANTIENE 100% INTACTA COMO PEDISTE
+// ESTA FUNCIÓN LEE LOS NOMBRES DE LAS CÁMARAS Y CREA EL SELECTOR
 async function startCamera(){
   try {
     scanHint.textContent = "Buscando cámaras disponibles...";
-    // 1. Pedimos al navegador la lista de todas las cámaras del dispositivo
     const devices = await Html5Qrcode.getCameras();
     
     if (devices && devices.length > 0) {
@@ -1140,12 +1136,10 @@ async function startCamera(){
       
       let defaultCameraId = devices[0].id; 
       
-      // 2. Llenamos el selector y buscamos cuál es la trasera por su nombre
       for (const device of devices) {
         const label = (device.label || '').toLowerCase();
         cameraSelect.innerHTML += `<option value="${device.id}">${device.label || 'Cámara ' + device.id}</option>`;
         
-        // Si el nombre dice back, trasera o environment, la elegimos por defecto
         if (label.includes('back') || label.includes('trasera') || label.includes('environment')) {
           defaultCameraId = device.id;
         }
@@ -1154,14 +1148,12 @@ async function startCamera(){
       cameraSelect.value = defaultCameraId;
       document.getElementById('cameraSelectWrap').style.display = 'block';
       
-      // 3. Evento: si el usuario cambia el selector, reiniciamos la cámara con la elegida
       cameraSelect.onchange = async () => {
          await stopCamera();
          html5QrCode = new Html5Qrcode("reader");
          await startSpecificCamera(cameraSelect.value);
       };
       
-      // Iniciamos la cámara por defecto
       html5QrCode = new Html5Qrcode("reader");
       await startSpecificCamera(defaultCameraId);
       
@@ -1174,17 +1166,12 @@ async function startCamera(){
   }
 }
 
-// ESTA SECCIÓN SE MANTIENE 100% INTACTA COMO PEDISTE
+// ESTA FUNCIÓN INICIA LA CÁMARA (LE QUITAMOS LA RESTRICCIÓN HD PARA QUE NO FALLE)
 async function startSpecificCamera(cameraId) {
-  // Configuración de escaneo (Optimizada para códigos de barras y resolución HD)
   const config = { 
     fps: 30, 
     qrbox: { width: 320, height: 150 }, 
     aspectRatio: 1.0,
-    videoConstraints: {
-        width: { min: 640, ideal: 1280, max: 1920 },
-        height: { min: 480, ideal: 720, max: 1080 }
-    },
     formatsToSupport: [ 
       Html5QrcodeSupportedFormats.EAN_13, 
       Html5QrcodeSupportedFormats.EAN_8, 

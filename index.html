@@ -536,6 +536,7 @@
   <div class="modal">
     <h2 id="scannerTitle">Escanear Código</h2>
     
+    <!-- Este es el selector de cámaras que te funcionaba bien -->
     <div id="cameraSelectWrap" style="display:none; margin-bottom: 12px;">
       <select id="cameraSelect" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--primary); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;"></select>
     </div>
@@ -1042,7 +1043,7 @@ async function renderReport(){
   }).join('');
 
   wrap.innerHTML = `
-    <table class="report-table">
+    <table class="report-table" id="reportDataTable">
       <thead><tr>
         <th>Producto</th>
         <th style="text-align:right;">Precio Unit.</th>
@@ -1085,8 +1086,7 @@ document.getElementById('rangeFrom').addEventListener('change', renderReport);
 document.getElementById('rangeTo').addEventListener('change', renderReport);
 
 document.getElementById('btnExportExcel').onclick = () => {
-    const tableWrap = document.getElementById('reportTableWrap');
-    const table = tableWrap.querySelector('table');
+    const table = document.getElementById('reportDataTable');
     
     if (!table) {
         alert("No hay datos en la tabla para exportar.");
